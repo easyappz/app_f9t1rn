@@ -1,0 +1,66 @@
+register:
+  post:
+    summary: Register a new user
+    description: Create a new user account with username and password
+    tags:
+      - Authentication
+    x-isSecure: false
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                minLength: 3
+                maxLength: 150
+                example: "john_doe"
+              password:
+                type: string
+                minLength: 6
+                example: "securePassword123"
+            required:
+              - username
+              - password
+    responses:
+      '201':
+        description: User successfully registered
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+                user:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: "john_doe"
+      '400':
+        description: Invalid input data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Username already exists"
+                username:
+                  type: array
+                  items:
+                    type: string
+                  example: ["This field is required."]
+                password:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Password is too short."]

@@ -1,0 +1,33 @@
+profile:
+  get:
+    summary: Get user profile
+    description: Retrieve authenticated user's profile information
+    tags:
+      - User
+    x-isSecure: true
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: User profile retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                username:
+                  type: string
+                  example: "john_doe"
+      '401':
+        description: Authentication credentials were not provided or invalid
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Authentication credentials were not provided"

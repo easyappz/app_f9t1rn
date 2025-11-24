@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: Authentication API
+  version: 1.0.0
+  description: API for user registration, authentication and profile management
+
+servers:
+  - url: /api
+    description: API server
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+      description: "Use format: Token <your_token>"
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "john_doe"
+      required:
+        - id
+        - username
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - token
+        - user
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid credentials"
+
+paths:
+  /register/:
+    $ref: './paths/register.yml#/register'
+  /login/:
+    $ref: './paths/login.yml#/login'
+  /profile/:
+    $ref: './paths/profile.yml#/profile'
