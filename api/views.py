@@ -142,7 +142,7 @@ class MessagePagination(PageNumberPagination):
 
 class MessagesListView(APIView):
     """
-    Get paginated list of chat messages.
+    Get paginated list of chat messages and create new messages.
     """
     authentication_classes = [MemberTokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -182,6 +182,21 @@ class MessagesListView(APIView):
             return paginator.get_paginated_response(serializer.data)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=MessageSerializer,
+        responses={
+            201: MessageSerializer,
+            400: {'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            401: {'type': 'object', 'properties': {'error': {'type': 'string'}}}
+        }
+    )
+    def post(self, request):
+        serializer = MessageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessageCreateView(APIView):

@@ -14,5 +14,4 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("profile/", ProfileView.as_view(), name="profile"),
     path("messages/", MessagesListView.as_view(), name="messages-list"),
-    path("messages/", MessageCreateView.as_view(), name="message-create"),
 ]
