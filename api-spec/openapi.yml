@@ -45,6 +45,28 @@ components:
         - token
         - user
 
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: "Hello, everyone!"
+        author:
+          type: string
+          example: "john_doe"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+      required:
+        - id
+        - text
+        - author
+        - created_at
+
     Error:
       type: object
       properties:
@@ -59,3 +81,5 @@ paths:
     $ref: './paths/login.yml#/login'
   /profile/:
     $ref: './paths/profile.yml#/profile'
+  /messages/:
+    $ref: './paths/messages.yml#/messages'
