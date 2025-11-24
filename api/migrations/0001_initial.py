@@ -48,4 +48,20 @@ class Migration(migrations.Migration):
                 'ordering': ['created_at'],
             },
         ),
+        migrations.AddIndex(
+            model_name='member',
+            index=models.Index(fields=['username'], name='members_username_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='message',
+            index=models.Index(fields=['created_at'], name='messages_created_at_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='message',
+            index=models.Index(fields=['author'], name='messages_author_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='membertoken',
+            index=models.Index(fields=['key'], name='member_tokens_key_idx'),
+        ),
     ]
