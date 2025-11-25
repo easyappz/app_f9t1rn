@@ -53,7 +53,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="profile-container" data-easytag="id4-react/src/components/Profile/index.jsx">
+      <div className="profile-container" data-easytag="id1-react/src/components/Profile/index.jsx">
         <div className="profile-card">
           <div className="loading-message">Загрузка профиля...</div>
         </div>
@@ -63,7 +63,7 @@ const Profile = () => {
 
   if (error) {
     return (
-      <div className="profile-container" data-easytag="id4-react/src/components/Profile/index.jsx">
+      <div className="profile-container" data-easytag="id1-react/src/components/Profile/index.jsx">
         <div className="profile-card">
           <div className="profile-header">
             <h1>Ошибка</h1>
@@ -78,7 +78,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-container" data-easytag="id4-react/src/components/Profile/index.jsx">
+    <div className="profile-container" data-easytag="id1-react/src/components/Profile/index.jsx">
       <div className="profile-card">
         <div className="profile-header">
           <h1>Профиль пользователя</h1>
