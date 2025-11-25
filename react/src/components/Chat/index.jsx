@@ -22,7 +22,6 @@ const Chat = () => {
 
     loadMessages();
 
-    // Auto-refresh messages every 3 seconds
     intervalRef.current = setInterval(() => {
       loadMessages(true);
     }, 3000);
@@ -49,7 +48,7 @@ const Chat = () => {
       }
       setError('');
       const data = await getMessages();
-      setMessages(data.results || []);
+      setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
       if (!silent) {
@@ -95,30 +94,25 @@ const Chat = () => {
     navigate('/profile');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  const formatTime = (timestamp) => {
+  const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
   };
 
   return (
-    <div className="chat-container" data-easytag="id3-react/src/components/Chat/index.jsx">
+    <div className="chat-container" data-easytag="id1-react/src/components/Chat/index.jsx">
       <div className="chat-header">
-        <div className="chat-header-title">
-          <h1>Групповой чат</h1>
+        <div className="chat-header-left">
+          <h1 className="chat-title">Корпоративный чат</h1>
         </div>
-        <div className="chat-header-actions">
-          <button className="profile-button" onClick={handleProfileClick}>
+        <div className="chat-header-right">
+          <button className="profile-link" onClick={handleProfileClick}>
             Профиль
-          </button>
-          <button className="logout-button" onClick={handleLogout}>
-            Выйти
           </button>
         </div>
       </div>
@@ -132,10 +126,10 @@ const Chat = () => {
           <div className="chat-empty">Нет сообщений. Начните общение!</div>
         ) : (
           messages.map((message) => (
-            <div key={message.id} className="message-item">
+            <div key={message.id} className="message-bubble">
               <div className="message-header">
-                <span className="message-author">{message.username}</span>
-                <span className="message-time">{formatTime(message.timestamp)}</span>
+                <span className="message-username">{message.username}</span>
+                <span className="message-timestamp">{formatTimestamp(message.timestamp)}</span>
               </div>
               <div className="message-text">{message.text}</div>
             </div>
@@ -144,21 +138,15 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-input-container">
+      <div className="chat-input-area">
         <form onSubmit={handleSendMessage} className="chat-form">
-          <textarea
-            className="chat-textarea"
+          <input
+            type="text"
+            className="chat-input"
             placeholder="Напишите сообщение..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage(e);
-              }
-            }}
             disabled={sending}
-            rows={1}
           />
           <button
             type="submit"
@@ -168,6 +156,7 @@ const Chat = () => {
             {sending ? 'Отправка...' : 'Отправить'}
           </button>
         </form>
+        {error && <div className="input-error">{error}</div>}
       </div>
     </div>
   );
