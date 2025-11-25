@@ -1,79 +1,36 @@
 messages:
   get:
-    summary: Get all chat messages
-    description: Retrieve paginated list of all chat messages
     tags:
       - Messages
+    summary: Get all messages
+    description: Retrieve complete chat history with all messages
+    operationId: getMessages
     x-isSecure: true
     security:
       - BearerAuth: []
-    parameters:
-      - name: page
-        in: query
-        description: Page number for pagination
-        required: false
-        schema:
-          type: integer
-          default: 1
-          minimum: 1
-      - name: page_size
-        in: query
-        description: Number of messages per page
-        required: false
-        schema:
-          type: integer
-          default: 50
-          minimum: 1
-          maximum: 100
     responses:
       '200':
-        description: List of messages
+        description: Messages retrieved successfully
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                count:
-                  type: integer
-                  example: 150
-                next:
-                  type: string
-                  nullable: true
-                  example: "/api/messages/?page=2"
-                previous:
-                  type: string
-                  nullable: true
-                  example: null
-                results:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      username:
-                        type: string
-                        example: "john_doe"
-                      text:
-                        type: string
-                        example: "Hello, everyone!"
-                      timestamp:
-                        type: string
-                        format: date-time
-                        example: "2024-01-15T10:30:00Z"
+              type: array
+              items:
+                $ref: '../openapi.yml#/components/schemas/Message'
       '401':
         description: Unauthorized - invalid or missing token
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
-
+            example:
+              error: "Authentication credentials were not provided"
   post:
-    summary: Send a new message
-    description: Create and send a new message to the chat
     tags:
       - Messages
+    summary: Send a new message
+    description: Create and send a new message to the group chat
+    operationId: createMessage
     x-isSecure: true
     security:
       - BearerAuth: []
@@ -93,36 +50,24 @@ messages:
               - text
     responses:
       '201':
-        description: Message successfully created
+        description: Message created successfully
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 1
-                username:
-                  type: string
-                  example: "john_doe"
-                text:
-                  type: string
-                  example: "Hello, everyone!"
-                timestamp:
-                  type: string
-                  format: date-time
-                  example: "2024-01-15T10:30:00Z"
+              $ref: '../openapi.yml#/components/schemas/Message'
       '400':
-        description: Bad request - validation error
+        description: Bad request - invalid message data
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
             example:
-              error: "Text field is required"
+              error: "Message text is required"
       '401':
         description: Unauthorized - invalid or missing token
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
+            example:
+              error: "Authentication credentials were not provided"

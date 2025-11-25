@@ -1,9 +1,10 @@
 register:
   post:
-    summary: Register a new user
-    description: Create a new user account with username and password
     tags:
       - Authentication
+    summary: Register a new user
+    description: Create a new user account with username and password
+    operationId: registerUser
     x-isSecure: false
     requestBody:
       required: true
@@ -19,7 +20,8 @@ register:
                 maxLength: 150
               password:
                 type: string
-                example: "securePassword123"
+                format: password
+                example: "SecurePassword123"
                 minLength: 6
             required:
               - username
@@ -37,8 +39,11 @@ register:
                   example: "User registered successfully"
                 user:
                   $ref: '../openapi.yml#/components/schemas/User'
+              required:
+                - message
+                - user
       '400':
-        description: Bad request - validation error or user already exists
+        description: Invalid input or user already exists
         content:
           application/json:
             schema:
@@ -46,7 +51,7 @@ register:
             examples:
               userExists:
                 value:
-                  error: "User with this username already exists"
-              validationError:
+                  error: "Username already exists"
+              invalidData:
                 value:
-                  error: "Username and password are required"
+                  error: "Invalid username or password"

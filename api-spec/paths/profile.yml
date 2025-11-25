@@ -1,30 +1,20 @@
 profile:
   get:
-    summary: Get user profile
-    description: Retrieve authenticated user's profile information
     tags:
       - User
+    summary: Get user profile
+    description: Retrieve authenticated user's profile information
+    operationId: getUserProfile
     x-isSecure: true
     security:
       - BearerAuth: []
     responses:
       '200':
-        description: User profile data
+        description: User profile retrieved successfully
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 1
-                username:
-                  type: string
-                  example: "john_doe"
-                created_at:
-                  type: string
-                  format: date-time
-                  example: "2024-01-15T10:30:00Z"
+              $ref: '../openapi.yml#/components/schemas/User'
       '401':
         description: Unauthorized - invalid or missing token
         content:
