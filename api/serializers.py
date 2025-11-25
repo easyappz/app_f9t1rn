@@ -3,30 +3,32 @@ from api.models import Member, Message
 
 
 class MemberSerializer(serializers.ModelSerializer):
+    """Serializer for Member model with id, username, created_at fields"""
+    
     class Meta:
         model = Member
-        fields = ['id', 'username']
-        read_only_fields = ['id']
+        fields = ['id', 'username', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 
-class RegisterSerializer(serializers.Serializer):
+class RegisterSerializer(serializers.ModelSerializer):
+    """Serializer for user registration with password hashing"""
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6,
+        style={'input_type': 'password'}
+    )
     username = serializers.CharField(
         min_length=3,
-        max_length=150,
-        required=True
-    )
-    password = serializers.CharField(
-        min_length=6,
-        required=True,
-        write_only=True
+        max_length=150
     )
 
-    def validate_username(self, value):
-        if Member.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Username already exists")
-        return value
+    class Meta:
+        model = Member
+        fields = ['username', 'password']
 
     def create(self, validated_data):
+        """Create a new member with hashed password"""
         member = Member(
             username=validated_data['username']
         )
@@ -36,39 +38,31 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
-
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            raise serializers.ValidationError("Username and password are required")
-
-        try:
-            member = Member.objects.get(username=username)
-        except Member.DoesNotExist:
-            raise serializers.ValidationError("Invalid username or password")
-
-        if not member.check_password(password):
-            raise serializers.ValidationError("Invalid username or password")
-
-        data['member'] = member
-        return data
+    """Serializer for user login"""
+    username = serializers.CharField()
+    password = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-
+    """Serializer for Message model with username from member"""
+    username = serializers.CharField(source='member.username', read_only=True)
+    
     class Meta:
         model = Message
-        fields = ['id', 'text', 'author', 'created_at']
-        read_only_fields = ['id', 'author', 'created_at']
+        fields = ['id', 'username', 'text', 'timestamp']
+        read_only_fields = ['id', 'timestamp']
 
-    def get_author(self, obj):
-        return obj.author.username
 
-    def create(self, validated_data):
-        validated_data['author'] = self.context['request'].user
-        return super().create(validated_data)
+class MessageCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating new messages"""
+    text = serializers.CharField(
+        min_length=1,
+        max_length=1000
+    )
+    
+    class Meta:
+        model = Message
+        fields = ['text']

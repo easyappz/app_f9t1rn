@@ -1,45 +1,76 @@
-from django.db import models
-from rest_framework.authentication import TokenAuthentication as BaseTokenAuthentication
+import hashlib
+from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from api.models import Member
 
 
-class MemberToken(models.Model):
-    """Token model for Member authentication"""
-    key = models.CharField(max_length=40, primary_key=True)
-    member = models.OneToOneField(
-        Member,
-        related_name='auth_token',
-        on_delete=models.CASCADE
-    )
-    created = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'member_tokens'
-
-    def __str__(self):
-        return self.key
-
-    def save(self, *args, **kwargs):
-        if not self.key:
-            self.key = self.generate_key()
-        return super().save(*args, **kwargs)
+class TokenStorage:
+    """Simple in-memory storage for authentication tokens"""
+    _tokens = {}
 
     @classmethod
-    def generate_key(cls):
-        import secrets
-        return secrets.token_hex(20)
+    def create_token(cls, member):
+        """Generate a simple token based on username hash"""
+        token = hashlib.sha256(
+            f"{member.username}_{member.id}_{member.created_at}".encode()
+        ).hexdigest()
+        cls._tokens[token] = member.id
+        return token
+
+    @classmethod
+    def get_member_id(cls, token):
+        """Get member ID by token"""
+        return cls._tokens.get(token)
+
+    @classmethod
+    def delete_token(cls, token):
+        """Remove token from storage"""
+        if token in cls._tokens:
+            del cls._tokens[token]
 
 
-class MemberTokenAuthentication(BaseTokenAuthentication):
+class TokenAuthentication(BaseAuthentication):
     """Custom token authentication for Member model"""
-    model = MemberToken
     keyword = 'Token'
 
-    def authenticate_credentials(self, key):
-        try:
-            token = self.model.objects.select_related('member').get(key=key)
-        except self.model.DoesNotExist:
-            raise AuthenticationFailed('Invalid token.')
+    def authenticate(self, request):
+        """Authenticate user by token from Authorization header"""
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        
+        if not auth_header:
+            return None
 
-        return (token.member, token)
+        try:
+            # Expected format: "Token <token_value>"
+            parts = auth_header.split()
+            
+            if len(parts) != 2:
+                raise AuthenticationFailed('Invalid token header format')
+            
+            if parts[0] != self.keyword:
+                return None
+            
+            token = parts[1]
+            
+        except (ValueError, UnicodeDecodeError):
+            raise AuthenticationFailed('Invalid token header')
+
+        return self.authenticate_credentials(token)
+
+    def authenticate_credentials(self, token):
+        """Validate token and return member instance"""
+        member_id = TokenStorage.get_member_id(token)
+        
+        if not member_id:
+            raise AuthenticationFailed('Invalid or expired token')
+
+        try:
+            member = Member.objects.get(id=member_id)
+        except Member.DoesNotExist:
+            raise AuthenticationFailed('User not found')
+
+        return (member, token)
+
+    def authenticate_header(self, request):
+        """Return authentication header for 401 responses"""
+        return self.keyword
