@@ -14,13 +14,13 @@ register:
             properties:
               username:
                 type: string
+                example: "john_doe"
                 minLength: 3
                 maxLength: 150
-                example: "john_doe"
               password:
                 type: string
-                minLength: 6
                 example: "securePassword123"
+                minLength: 6
             required:
               - username
               - password
@@ -32,35 +32,21 @@ register:
             schema:
               type: object
               properties:
-                token:
+                message:
                   type: string
-                  example: "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+                  example: "User registered successfully"
                 user:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    username:
-                      type: string
-                      example: "john_doe"
+                  $ref: '../openapi.yml#/components/schemas/User'
       '400':
-        description: Invalid input data
+        description: Bad request - validation error or user already exists
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Username already exists"
-                username:
-                  type: array
-                  items:
-                    type: string
-                  example: ["This field is required."]
-                password:
-                  type: array
-                  items:
-                    type: string
-                  example: ["Password is too short."]
+              $ref: '../openapi.yml#/components/schemas/Error'
+            examples:
+              userExists:
+                value:
+                  error: "User with this username already exists"
+              validationError:
+                value:
+                  error: "Username and password are required"

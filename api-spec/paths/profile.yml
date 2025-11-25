@@ -9,7 +9,7 @@ profile:
       - BearerAuth: []
     responses:
       '200':
-        description: User profile retrieved successfully
+        description: User profile data
         content:
           application/json:
             schema:
@@ -21,13 +21,15 @@ profile:
                 username:
                   type: string
                   example: "john_doe"
+                created_at:
+                  type: string
+                  format: date-time
+                  example: "2024-01-15T10:30:00Z"
       '401':
-        description: Authentication credentials were not provided or invalid
+        description: Unauthorized - invalid or missing token
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Authentication credentials were not provided"
+              $ref: '../openapi.yml#/components/schemas/Error'
+            example:
+              error: "Authentication credentials were not provided"

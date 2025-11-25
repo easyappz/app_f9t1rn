@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Authentication API
+  title: Group Chat API
   version: 1.0.0
-  description: API for user registration, authentication and profile management
+  description: API for group chat application with user registration, authentication and messaging
 
 servers:
   - url: /api
@@ -83,3 +83,11 @@ paths:
     $ref: './paths/profile.yml#/profile'
   /messages/:
     $ref: './paths/messages.yml#/messages'
+
+tags:
+  - name: Authentication
+    description: User registration and authentication endpoints
+  - name: User
+    description: User profile management
+  - name: Messages
+    description: Chat messaging endpoints

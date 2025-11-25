@@ -1,30 +1,33 @@
 messages:
   get:
-    summary: Get chat messages
-    description: Retrieve paginated list of chat messages with author information and timestamps
+    summary: Get all chat messages
+    description: Retrieve paginated list of all chat messages
     tags:
       - Messages
     x-isSecure: true
+    security:
+      - BearerAuth: []
     parameters:
       - name: page
         in: query
+        description: Page number for pagination
         required: false
         schema:
           type: integer
           default: 1
-          example: 1
-        description: Page number for pagination
+          minimum: 1
       - name: page_size
         in: query
+        description: Number of messages per page
         required: false
         schema:
           type: integer
           default: 50
-          example: 50
-        description: Number of messages per page
+          minimum: 1
+          maximum: 100
     responses:
       '200':
-        description: Successfully retrieved messages
+        description: List of messages
         content:
           application/json:
             schema:
@@ -32,18 +35,15 @@ messages:
               properties:
                 count:
                   type: integer
-                  example: 100
-                  description: Total number of messages
+                  example: 150
                 next:
                   type: string
                   nullable: true
                   example: "/api/messages/?page=2"
-                  description: URL to next page
                 previous:
                   type: string
                   nullable: true
                   example: null
-                  description: URL to previous page
                 results:
                   type: array
                   items:
@@ -52,32 +52,22 @@ messages:
                       id:
                         type: integer
                         example: 1
+                      username:
+                        type: string
+                        example: "john_doe"
                       text:
                         type: string
                         example: "Hello, everyone!"
-                      author:
-                        type: string
-                        example: "john_doe"
-                        description: Username of the message author
-                      created_at:
+                      timestamp:
                         type: string
                         format: date-time
                         example: "2024-01-15T10:30:00Z"
-                    required:
-                      - id
-                      - text
-                      - author
-                      - created_at
       '401':
-        description: Unauthorized - authentication required
+        description: Unauthorized - invalid or missing token
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Authentication credentials were not provided"
+              $ref: '../openapi.yml#/components/schemas/Error'
 
   post:
     summary: Send a new message
@@ -85,6 +75,8 @@ messages:
     tags:
       - Messages
     x-isSecure: true
+    security:
+      - BearerAuth: []
     requestBody:
       required: true
       content:
@@ -95,7 +87,8 @@ messages:
               text:
                 type: string
                 example: "Hello, everyone!"
-                description: Message text content
+                minLength: 1
+                maxLength: 1000
             required:
               - text
     responses:
@@ -109,39 +102,27 @@ messages:
                 id:
                   type: integer
                   example: 1
+                username:
+                  type: string
+                  example: "john_doe"
                 text:
                   type: string
                   example: "Hello, everyone!"
-                author:
-                  type: string
-                  example: "john_doe"
-                  description: Username of the message author
-                created_at:
+                timestamp:
                   type: string
                   format: date-time
                   example: "2024-01-15T10:30:00Z"
-              required:
-                - id
-                - text
-                - author
-                - created_at
       '400':
-        description: Bad request - invalid message data
+        description: Bad request - validation error
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Text field is required"
+              $ref: '../openapi.yml#/components/schemas/Error'
+            example:
+              error: "Text field is required"
       '401':
-        description: Unauthorized - authentication required
+        description: Unauthorized - invalid or missing token
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Authentication credentials were not provided"
+              $ref: '../openapi.yml#/components/schemas/Error'
