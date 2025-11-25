@@ -44,7 +44,7 @@ class Member(models.Model):
 
 class Message(models.Model):
     """Message model for chat messages"""
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='messages')
+    author = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='messages')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -53,8 +53,8 @@ class Message(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['created_at']),
-            models.Index(fields=['member', 'created_at']),
+            models.Index(fields=['author', 'created_at']),
         ]
 
     def __str__(self):
-        return f'{self.member.username}: {self.text[:50]}'
+        return f'{self.author.username}: {self.text[:50]}'
