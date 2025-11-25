@@ -3,12 +3,12 @@ from api.models import Member, Message
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    """Serializer for Member model with id and username fields"""
+    """Serializer for Member model - used in profile and nested in messages"""
     
     class Meta:
         model = Member
-        fields = ['id', 'username']
-        read_only_fields = ['id']
+        fields = ['id', 'username', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -47,20 +47,20 @@ class LoginSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    """Serializer for Message model with username from member"""
-    username = serializers.CharField(source='member.username', read_only=True)
+    """Serializer for Message model with nested author information"""
+    author = MemberSerializer(read_only=True)
     
     class Meta:
         model = Message
-        fields = ['id', 'username', 'text', 'created_at']
-        read_only_fields = ['id', 'username', 'created_at']
+        fields = ['id', 'author', 'text', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
 
 
-class MessageCreateSerializer(serializers.ModelSerializer):
+class CreateMessageSerializer(serializers.ModelSerializer):
     """Serializer for creating new messages"""
     text = serializers.CharField(
         min_length=1,
-        max_length=1000
+        max_length=5000
     )
     
     class Meta:
