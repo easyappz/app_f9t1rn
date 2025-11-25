@@ -32,9 +32,8 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const data = await register(username, password);
-      localStorage.setItem('token', data.token);
-      navigate('/chat');
+      await register(username, password);
+      navigate('/login');
     } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);

@@ -76,8 +76,8 @@
 }
 
 .form-input:focus {
-  border-color: #611f69;
-  box-shadow: 0 0 0 4px rgba(97, 31, 105, 0.1);
+  border-color: #1264a3;
+  box-shadow: 0 0 0 4px rgba(18, 100, 163, 0.1);
 }
 
 .form-input:disabled {
