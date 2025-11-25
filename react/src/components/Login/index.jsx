@@ -39,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container" data-easytag="id2-react/src/components/Login/index.jsx">
+    <div className="login-container" data-easytag="id1-react/src/components/Login/index.jsx">
       <div className="login-card">
         <div className="login-header">
           <h1 className="login-title">Вход</h1>
