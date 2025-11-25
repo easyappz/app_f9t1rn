@@ -56,7 +56,7 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'author', 'created_at']
 
 
-class CreateMessageSerializer(serializers.ModelSerializer):
+class MessageCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new messages"""
     text = serializers.CharField(
         min_length=1,

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
+import secrets
 
 
 class Member(models.Model):
@@ -40,6 +41,30 @@ class Member(models.Model):
     def has_module_perms(self, app_label):
         """Return False as module permissions are not used"""
         return False
+
+
+class Token(models.Model):
+    """Token model for authentication"""
+    key = models.CharField(max_length=64, unique=True, db_index=True)
+    member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='auth_token')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tokens'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Token for {self.member.username}'
+
+    @classmethod
+    def generate_key(cls):
+        """Generate a random token key"""
+        return secrets.token_hex(32)
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
 
 
 class Message(models.Model):

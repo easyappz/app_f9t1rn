@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db import IntegrityError
-from api.models import Member, Message
+from api.models import Member, Message, Token
 from api.serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -11,7 +11,7 @@ from api.serializers import (
     MessageSerializer,
     MessageCreateSerializer
 )
-from api.authentication import TokenAuthentication, TokenStorage
+from api.authentication import TokenAuthentication
 
 
 class RegisterView(APIView):
@@ -68,14 +68,15 @@ class LoginView(APIView):
         try:
             member = Member.objects.get(username=username)
             if member.check_password(password):
-                token = TokenStorage.create_token(member)
+                # Get or create token for the member
+                token, created = Token.objects.get_or_create(member=member)
                 user_data = {
                     'id': member.id,
                     'username': member.username
                 }
                 return Response(
                     {
-                        'token': token,
+                        'token': token.key,
                         'user': user_data
                     },
                     status=status.HTTP_200_OK
@@ -122,14 +123,14 @@ class MessageListCreateView(APIView):
 
     def get(self, request):
         """Get all messages with user data, sorted by created_at"""
-        messages = Message.objects.select_related('member').all().order_by('created_at')
+        messages = Message.objects.select_related('author').all().order_by('created_at')
         
         messages_data = []
         for message in messages:
             messages_data.append({
                 'id': message.id,
                 'text': message.text,
-                'author': message.member.username,
+                'author': message.author.username,
                 'created_at': message.created_at.isoformat()
             })
         
@@ -139,11 +140,11 @@ class MessageListCreateView(APIView):
         """Create a new message for authenticated user"""
         serializer = MessageCreateSerializer(data=request.data)
         if serializer.is_valid():
-            message = serializer.save(member=request.user)
+            message = serializer.save(author=request.user)
             response_data = {
                 'id': message.id,
                 'text': message.text,
-                'author': message.member.username,
+                'author': message.author.username,
                 'created_at': message.created_at.isoformat()
             }
             return Response(response_data, status=status.HTTP_201_CREATED)

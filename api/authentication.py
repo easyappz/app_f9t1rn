@@ -1,36 +1,10 @@
-import hashlib
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from api.models import Member
-
-
-class TokenStorage:
-    """Simple in-memory storage for authentication tokens"""
-    _tokens = {}
-
-    @classmethod
-    def create_token(cls, member):
-        """Generate a simple token based on username hash"""
-        token = hashlib.sha256(
-            f"{member.username}_{member.id}_{member.created_at}".encode()
-        ).hexdigest()
-        cls._tokens[token] = member.id
-        return token
-
-    @classmethod
-    def get_member_id(cls, token):
-        """Get member ID by token"""
-        return cls._tokens.get(token)
-
-    @classmethod
-    def delete_token(cls, token):
-        """Remove token from storage"""
-        if token in cls._tokens:
-            del cls._tokens[token]
+from api.models import Token, Member
 
 
 class TokenAuthentication(BaseAuthentication):
-    """Custom token authentication for Member model"""
+    """Custom token authentication for Member model using Token model"""
     keyword = 'Token'
 
     def authenticate(self, request):
@@ -57,19 +31,17 @@ class TokenAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(token)
 
-    def authenticate_credentials(self, token):
+    def authenticate_credentials(self, key):
         """Validate token and return member instance"""
-        member_id = TokenStorage.get_member_id(token)
-        
-        if not member_id:
+        try:
+            token = Token.objects.select_related('member').get(key=key)
+        except Token.DoesNotExist:
             raise AuthenticationFailed('Invalid or expired token')
 
-        try:
-            member = Member.objects.get(id=member_id)
-        except Member.DoesNotExist:
+        if not token.member:
             raise AuthenticationFailed('User not found')
 
-        return (member, token)
+        return (token.member, token)
 
     def authenticate_header(self, request):
         """Return authentication header for 401 responses"""
