@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register } from '../../api/auth';
+import { register, login } from '../../api/auth';
 import './styles.css';
 
 const Register = () => {
@@ -33,7 +33,8 @@ const Register = () => {
 
     try {
       await register(username, password);
-      navigate('/login');
+      await login(username, password);
+      navigate('/chat');
     } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
