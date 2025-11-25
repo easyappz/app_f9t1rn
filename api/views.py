@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
 from django.db import IntegrityError
 from api.models import Member, Message
 from api.serializers import (
@@ -18,6 +17,7 @@ from api.authentication import TokenAuthentication, TokenStorage
 class RegisterView(APIView):
     """
     Register a new user and return success message with user data.
+    POST /api/register/
     """
 
     def post(self, request):
@@ -38,19 +38,12 @@ class RegisterView(APIView):
                 )
             except IntegrityError:
                 return Response(
-                    {'error': 'User with this username already exists'},
+                    {'error': 'Username already exists'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
-        # Handle validation errors
-        errors = serializer.errors
-        if 'username' in errors or 'password' in errors:
-            return Response(
-                {'error': 'Username and password are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         return Response(
-            serializer.errors,
+            {'error': 'Invalid username or password'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -58,14 +51,15 @@ class RegisterView(APIView):
 class LoginView(APIView):
     """
     Authenticate user and return token with user data.
+    POST /api/login/
     """
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Invalid username or password'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         
         username = serializer.validated_data['username']
@@ -88,87 +82,73 @@ class LoginView(APIView):
                 )
             else:
                 return Response(
-                    {'error': 'Invalid credentials'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {'error': 'Invalid username or password'},
+                    status=status.HTTP_401_UNAUTHORIZED
                 )
         except Member.DoesNotExist:
             return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Invalid username or password'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
 
 class ProfileView(APIView):
     """
     Get authenticated user profile.
+    GET /api/profile/
+    Requires authentication.
     """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         member = request.user
-        return Response(
-            {
-                'id': member.id,
-                'username': member.username,
-                'created_at': member.created_at.isoformat()
-            },
-            status=status.HTTP_200_OK
-        )
+        user_data = {
+            'id': member.id,
+            'username': member.username
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
 
 
-class MessagePagination(PageNumberPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
-
-class MessageListView(APIView):
+class MessageListCreateView(APIView):
     """
-    Get paginated list of chat messages.
+    List all messages or create a new message.
+    GET /api/messages/ - Get all messages sorted by created_at
+    POST /api/messages/ - Create a new message
+    Both require authentication.
     """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    pagination_class = MessagePagination
 
     def get(self, request):
-        messages = Message.objects.select_related('member').all().order_by('timestamp')
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(messages, request)
+        """Get all messages with user data, sorted by created_at"""
+        messages = Message.objects.select_related('member').all().order_by('created_at')
         
-        if page is not None:
-            serializer = MessageSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
+        messages_data = []
+        for message in messages:
+            messages_data.append({
+                'id': message.id,
+                'text': message.text,
+                'author': message.member.username,
+                'created_at': message.created_at.isoformat()
+            })
         
-        serializer = MessageSerializer(messages, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class MessageCreateView(APIView):
-    """
-    Create a new chat message.
-    """
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+        return Response(messages_data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        """Create a new message for authenticated user"""
         serializer = MessageCreateSerializer(data=request.data)
         if serializer.is_valid():
             message = serializer.save(member=request.user)
             response_data = {
                 'id': message.id,
-                'username': message.member.username,
                 'text': message.text,
-                'timestamp': message.timestamp.isoformat()
+                'author': message.member.username,
+                'created_at': message.created_at.isoformat()
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
         
-        if 'text' in serializer.errors:
-            return Response(
-                {'error': 'Text field is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         return Response(
-            serializer.errors,
+            {'error': 'Message text is required'},
             status=status.HTTP_400_BAD_REQUEST
         )
