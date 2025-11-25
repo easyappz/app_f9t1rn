@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { getMessages, sendMessage } from '../../api/messages';
+import { logout } from '../../api/auth';
 import './styles.css';
 
 const Chat = () => {
@@ -11,7 +12,6 @@ const Chat = () => {
   const [error, setError] = useState('');
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
-  const intervalRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -21,16 +21,6 @@ const Chat = () => {
     }
 
     loadMessages();
-
-    intervalRef.current = setInterval(() => {
-      loadMessages(true);
-    }, 3000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
   }, [navigate]);
 
   useEffect(() => {
@@ -41,27 +31,20 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadMessages = async (silent = false) => {
+  const loadMessages = async () => {
     try {
-      if (!silent) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError('');
       const data = await getMessages();
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      if (!silent) {
-        setError('Не удалось загрузить сообщения');
-      }
+      setError('Не удалось загрузить сообщения');
       if (error.response && error.response.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
+        handleLogout();
       }
     } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -77,21 +60,21 @@ const Chat = () => {
       setError('');
       await sendMessage(messageText);
       setMessageText('');
-      await loadMessages(true);
+      await loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
       setError('Не удалось отправить сообщение');
       if (error.response && error.response.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
+        handleLogout();
       }
     } finally {
       setSending(false);
     }
   };
 
-  const handleProfileClick = () => {
-    navigate('/profile');
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const formatTimestamp = (timestamp) => {
@@ -108,11 +91,14 @@ const Chat = () => {
     <div className="chat-container" data-easytag="id1-react/src/components/Chat/index.jsx">
       <div className="chat-header">
         <div className="chat-header-left">
-          <h1 className="chat-title">Корпоративный чат</h1>
+          <h1 className="chat-title"># Общий чат</h1>
         </div>
         <div className="chat-header-right">
-          <button className="profile-link" onClick={handleProfileClick}>
+          <Link to="/profile" className="profile-link">
             Профиль
+          </Link>
+          <button className="logout-button" onClick={handleLogout}>
+            Выйти
           </button>
         </div>
       </div>
@@ -156,7 +142,6 @@ const Chat = () => {
             {sending ? 'Отправка...' : 'Отправить'}
           </button>
         </form>
-        {error && <div className="input-error">{error}</div>}
       </div>
     </div>
   );
