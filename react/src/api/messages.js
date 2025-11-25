@@ -12,7 +12,7 @@ export const getMessages = async () => {
 
 /**
  * Send a new message to the chat
- * @param {string} text - Message text content (1-1000 characters)
+ * @param {string} text - Message text content (1-5000 characters)
  * @returns {Promise<{id: number, username: string, text: string, timestamp: string}>} Response with created message data
  * @throws {Error} If authentication fails or validation error occurs
  */

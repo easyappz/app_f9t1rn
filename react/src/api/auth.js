@@ -4,7 +4,7 @@ import instance from './axiosInterceptors';
  * Register a new user
  * @param {string} username - Username for the new account (3-150 characters)
  * @param {string} password - Password for the new account (minimum 6 characters)
- * @returns {Promise<{message: string, user: {id: number, username: string}}>} Response with success message and user data
+ * @returns {Promise<{token: string, user: {id: number, username: string}}>} Response with token and user data
  * @throws {Error} If registration fails (user exists or validation error)
  */
 export const register = async (username, password) => {
@@ -12,6 +12,12 @@ export const register = async (username, password) => {
     username,
     password,
   });
+  
+  // Save token to localStorage
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+  }
+  
   return response.data;
 };
 
