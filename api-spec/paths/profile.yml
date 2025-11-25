@@ -7,10 +7,10 @@ profile:
     operationId: getUserProfile
     x-isSecure: true
     security:
-      - BearerAuth: []
+      - TokenAuth: []
     responses:
       '200':
-        description: User profile retrieved successfully
+        description: User profile data
         content:
           application/json:
             schema:

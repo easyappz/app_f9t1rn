@@ -21,7 +21,7 @@ register:
               password:
                 type: string
                 format: password
-                example: "SecurePassword123"
+                example: "secretPassword123"
                 minLength: 6
             required:
               - username
@@ -32,26 +32,17 @@ register:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: "User registered successfully"
-                user:
-                  $ref: '../openapi.yml#/components/schemas/User'
-              required:
-                - message
-                - user
+              $ref: '../openapi.yml#/components/schemas/AuthResponse'
       '400':
-        description: Invalid input or user already exists
+        description: Bad request - validation error or username already exists
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
             examples:
-              userExists:
+              usernameExists:
                 value:
                   error: "Username already exists"
-              invalidData:
+              validationError:
                 value:
-                  error: "Invalid username or password"
+                  error: "Username and password are required"

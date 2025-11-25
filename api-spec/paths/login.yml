@@ -2,8 +2,8 @@ login:
   post:
     tags:
       - Authentication
-    summary: Login user
-    description: Authenticate user with username and password, returns authentication token
+    summary: User login
+    description: Authenticate user and return authentication token
     operationId: loginUser
     x-isSecure: false
     requestBody:
@@ -19,7 +19,7 @@ login:
               password:
                 type: string
                 format: password
-                example: "SecurePassword123"
+                example: "secretPassword123"
             required:
               - username
               - password
@@ -31,16 +31,18 @@ login:
             schema:
               $ref: '../openapi.yml#/components/schemas/AuthResponse'
       '401':
-        description: Invalid credentials
+        description: Unauthorized - invalid credentials
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
             example:
-              error: "Invalid username or password"
+              error: "Invalid credentials"
       '400':
-        description: Bad request
+        description: Bad request - missing required fields
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
+            example:
+              error: "Username and password are required"

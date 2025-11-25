@@ -2,15 +2,15 @@ messages:
   get:
     tags:
       - Messages
-    summary: Get all messages
-    description: Retrieve complete chat history with all messages
+    summary: Get message history
+    description: Retrieve all chat messages history
     operationId: getMessages
     x-isSecure: true
     security:
-      - BearerAuth: []
+      - TokenAuth: []
     responses:
       '200':
-        description: Messages retrieved successfully
+        description: List of messages
         content:
           application/json:
             schema:
@@ -25,15 +25,16 @@ messages:
               $ref: '../openapi.yml#/components/schemas/Error'
             example:
               error: "Authentication credentials were not provided"
+
   post:
     tags:
       - Messages
-    summary: Send a new message
-    description: Create and send a new message to the group chat
-    operationId: createMessage
+    summary: Send a message
+    description: Post a new message to the group chat
+    operationId: sendMessage
     x-isSecure: true
     security:
-      - BearerAuth: []
+      - TokenAuth: []
     requestBody:
       required: true
       content:
@@ -45,24 +46,24 @@ messages:
                 type: string
                 example: "Hello, everyone!"
                 minLength: 1
-                maxLength: 1000
+                maxLength: 5000
             required:
               - text
     responses:
       '201':
-        description: Message created successfully
+        description: Message successfully created
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Message'
       '400':
-        description: Bad request - invalid message data
+        description: Bad request - validation error
         content:
           application/json:
             schema:
               $ref: '../openapi.yml#/components/schemas/Error'
             example:
-              error: "Message text is required"
+              error: "Text field is required"
       '401':
         description: Unauthorized - invalid or missing token
         content:
