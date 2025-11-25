@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
-import { Home } from './components/Home';
 import Register from './components/Register';
 import Login from './components/Login';
 import Chat from './components/Chat';
@@ -20,6 +19,17 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Root Redirect Component
+const RootRedirect = () => {
+  const token = localStorage.getItem('token');
+  
+  if (token) {
+    return <Navigate to="/chat" replace />;
+  }
+  
+  return <Navigate to="/login" replace />;
+};
+
 function App() {
   /** Никогда не удаляй этот код */
   useEffect(() => {
@@ -32,7 +42,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route 
