@@ -3,12 +3,14 @@ from api.views import (
     RegisterView,
     LoginView,
     ProfileView,
-    MessageListCreateView
+    MessageListView,
+    MessageCreateView
 )
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
-    path('messages/', MessageListCreateView.as_view(), name='messages'),
+    path('messages/', MessageListView.as_view(), name='message-list'),
+    path('messages/', MessageCreateView.as_view(), name='message-create'),
 ]

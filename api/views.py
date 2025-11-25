@@ -43,7 +43,7 @@ class RegisterView(APIView):
                 )
         
         return Response(
-            {'error': 'Invalid username or password'},
+            {'error': 'Username and password are required'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -58,8 +58,8 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
-                {'error': 'Invalid username or password'},
-                status=status.HTTP_401_UNAUTHORIZED
+                {'error': 'Username and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         username = serializer.validated_data['username']
@@ -68,7 +68,6 @@ class LoginView(APIView):
         try:
             member = Member.objects.get(username=username)
             if member.check_password(password):
-                # Get or create token for the member
                 token, created = Token.objects.get_or_create(member=member)
                 user_data = {
                     'id': member.id,
@@ -83,12 +82,12 @@ class LoginView(APIView):
                 )
             else:
                 return Response(
-                    {'error': 'Invalid username or password'},
+                    {'error': 'Invalid credentials'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
         except Member.DoesNotExist:
             return Response(
-                {'error': 'Invalid username or password'},
+                {'error': 'Invalid credentials'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -111,18 +110,16 @@ class ProfileView(APIView):
         return Response(user_data, status=status.HTTP_200_OK)
 
 
-class MessageListCreateView(APIView):
+class MessageListView(APIView):
     """
-    List all messages or create a new message.
-    GET /api/messages/ - Get all messages sorted by created_at
-    POST /api/messages/ - Create a new message
-    Both require authentication.
+    Get all messages sorted by created_at.
+    GET /api/messages/
+    Requires authentication.
     """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Get all messages with user data, sorted by created_at"""
         messages = Message.objects.select_related('author').all().order_by('created_at')
         
         messages_data = []
@@ -136,8 +133,17 @@ class MessageListCreateView(APIView):
         
         return Response(messages_data, status=status.HTTP_200_OK)
 
+
+class MessageCreateView(APIView):
+    """
+    Create a new message.
+    POST /api/messages/
+    Requires authentication.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        """Create a new message for authenticated user"""
         serializer = MessageCreateSerializer(data=request.data)
         if serializer.is_valid():
             message = serializer.save(author=request.user)
@@ -150,6 +156,6 @@ class MessageListCreateView(APIView):
             return Response(response_data, status=status.HTTP_201_CREATED)
         
         return Response(
-            {'error': 'Message text is required'},
+            {'error': 'Text field is required'},
             status=status.HTTP_400_BAD_REQUEST
         )
