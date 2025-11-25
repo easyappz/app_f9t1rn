@@ -19,6 +19,17 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Public Route Component (redirect to chat if already logged in)
+const PublicRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  
+  if (token) {
+    return <Navigate to="/chat" replace />;
+  }
+  
+  return children;
+};
+
 // Root Redirect Component
 const RootRedirect = () => {
   const token = localStorage.getItem('token');
@@ -43,8 +54,22 @@ function App() {
     <ErrorBoundary>
       <Routes>
         <Route path="/" element={<RootRedirect />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/register" 
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
         <Route 
           path="/chat" 
           element={
