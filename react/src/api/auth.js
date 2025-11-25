@@ -1,10 +1,11 @@
-import instance from './axios';
+import instance from './axiosInterceptors';
 
 /**
  * Register a new user
- * @param {string} username - Username for the new account
- * @param {string} password - Password for the new account
- * @returns {Promise} Response with token and user data
+ * @param {string} username - Username for the new account (3-150 characters)
+ * @param {string} password - Password for the new account (minimum 6 characters)
+ * @returns {Promise<{message: string, user: {id: number, username: string}}>} Response with success message and user data
+ * @throws {Error} If registration fails (user exists or validation error)
  */
 export const register = async (username, password) => {
   const response = await instance.post('/api/register/', {
@@ -15,29 +16,40 @@ export const register = async (username, password) => {
 };
 
 /**
- * Login user
+ * Login user and save authentication token
  * @param {string} username - Username
  * @param {string} password - Password
- * @returns {Promise} Response with token and user data
+ * @returns {Promise<{token: string, user: {id: number, username: string}}>} Response with token and user data
+ * @throws {Error} If login fails (invalid credentials)
  */
 export const login = async (username, password) => {
   const response = await instance.post('/api/login/', {
     username,
     password,
   });
+  
+  // Save token to localStorage
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+  }
+  
   return response.data;
 };
 
 /**
  * Get authenticated user profile
- * @returns {Promise} Response with user profile data
+ * @returns {Promise<{id: number, username: string, created_at: string}>} Response with user profile data
+ * @throws {Error} If authentication fails (invalid or missing token)
  */
 export const getProfile = async () => {
-  const token = localStorage.getItem('token');
-  const response = await instance.get('/api/profile/', {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  });
+  const response = await instance.get('/api/profile/');
   return response.data;
+};
+
+/**
+ * Logout user by clearing authentication token from localStorage
+ * @returns {void}
+ */
+export const logout = () => {
+  localStorage.removeItem('token');
 };
