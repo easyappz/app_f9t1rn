@@ -3,12 +3,13 @@ from django.contrib.auth.hashers import make_password, check_password
 
 
 class Member(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=128)
+    username = models.CharField(max_length=150, unique=True, db_index=True)
+    password = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'members'
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.username
@@ -35,13 +36,17 @@ class Member(models.Model):
 
 
 class Message(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='messages')
     text = models.TextField()
-    author = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='messages')
-    created_at = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         db_table = 'messages'
-        ordering = ['created_at']
+        ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['member', 'timestamp']),
+        ]
 
     def __str__(self):
-        return f'{self.author.username}: {self.text[:50]}'
+        return f'{self.member.username}: {self.text[:50]}'
